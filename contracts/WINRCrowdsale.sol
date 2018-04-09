@@ -287,6 +287,7 @@ contract MintableToken is StandardToken, Ownable {
      * Claim tokens
      */
     function claimTokens(address _token) public onlyOwner {
+    //function claimTokens(address _token) public {  //for test
         if (_token == 0x0) {
             owner.transfer(this.balance);
             return;
@@ -332,17 +333,13 @@ contract WINRCrowdsale is Ownable, Crowdsale, MintableToken {
     enum State {Active, Closed}
     State public state;
 
-    /**
-    * 1 Stage  1 ETH = 300  token -- Limit = 0,10  ETH
-    * 2 Stage  1 ETH = 290  token -- Limit = 0,05  ETH
-    * 3 Stage  1 ETH = 275  token -- Limit = 0,01  ETH
-    * 4 Stage  1 ETH = 250  token -- Limit = no
-    *
-    */
-    uint256[] public rates  = [300, 290, 275, 250];
-    uint256[] public weiMinSale =  [10*10**16,  5*10**16, 1*10**16, 0];
+    //$0.1 = 1 token => $ 1,000 = 2.50287204567 ETH =>
+    //10,000 token = 2.50287204567 ETH => 1 ETH = 10,000/2.08881106 = 3995
+    uint256 public rate  = 3995;
+    uint256[] public discount =  [125,  110, 100];
 
     mapping (address => uint256) public deposited;
+    mapping(address => bool) public whitelist;
 
     uint256 public constant INITIAL_SUPPLY = 80 * (10 ** 6) * (10 ** uint256(decimals));
     uint256 public fundForSale = 50 * (10 ** 6) * (10 ** uint256(decimals));
@@ -362,7 +359,6 @@ contract WINRCrowdsale is Ownable, Crowdsale, MintableToken {
     public
     Crowdsale(_owner)
     {
-
         require(_owner != address(0));
         owner = _owner;
         transfersEnabled = true;
@@ -404,14 +400,15 @@ contract WINRCrowdsale is Ownable, Crowdsale, MintableToken {
 
     function getTotalAmountOfTokens(uint256 _weiAmount) internal view returns (uint256) {
         uint256 currentDate = now;
-        //currentDate = 1520640000; //for test's
+        //currentDate = 1528588800; //for test's
         uint256 currentPeriod = getPeriod(currentDate);
         uint256 amountOfTokens = 0;
         if(currentPeriod < 3){
-            if(_weiAmount < weiMinSale[currentPeriod]){
-                return 0;
+            if(whitelist[msg.sender]){
+                amountOfTokens = _weiAmount.mul(rate).mul(130).div(100);
+                return amountOfTokens;
             }
-            amountOfTokens = (_weiAmount.mul(rates[currentPeriod])).div(uint256(10**18));
+            amountOfTokens = _weiAmount.mul(rate).mul(discount[currentPeriod]).div(100);
         }
         return amountOfTokens;
     }
@@ -467,8 +464,37 @@ contract WINRCrowdsale is Ownable, Crowdsale, MintableToken {
         result = true;
     }
 
-    function removeContract() public onlyOwner {
-        selfdestruct(owner);
+    function setRate(uint256 _newRate) public onlyOwner returns (bool){
+        require(_newRate > 0);
+        rate = _newRate;
+        return true;
+    }
+
+    /**
+    * @dev Adds single address to whitelist.
+    * @param _beneficiary Address to be added to the whitelist
+    */
+    function addToWhitelist(address _beneficiary) external onlyOwner {
+        whitelist[_beneficiary] = true;
+    }
+
+    /**
+     * @dev Adds list of addresses to whitelist. Not overloaded due to limitations with truffle testing.
+     * @param _beneficiaries Addresses to be added to the whitelist
+     */
+    function addManyToWhitelist(address[] _beneficiaries) external onlyOwner {
+        require(_beneficiaries.length < 101);
+        for (uint256 i = 0; i < _beneficiaries.length; i++) {
+            whitelist[_beneficiaries[i]] = true;
+        }
+    }
+
+    /**
+     * @dev Removes single address from whitelist.
+     * @param _beneficiary Address to be removed to the whitelist
+     */
+    function removeFromWhitelist(address _beneficiary) external onlyOwner {
+        whitelist[_beneficiary] = false;
     }
 }
 

@@ -4,12 +4,12 @@ var WINRCrowdsale = artifacts.require("./WINRCrowdsale.sol");
 contract('WINRCrowdsale', (accounts) => {
     var contract;
     var owner = "0x22fF906881cF77210756784427C8E14CD5Db9bf3";
-    var rate = Number(300/10**8);
+    var rate = Number(3995*1.25);
     var buyWei = 1 * 10**18;
-    var rateNew = Number(300/10**8);
+    var rateNew = Number(3995*1.25);
     var buyWeiNew = 5 * 10**17;
     var buyWeiMin = 1 * 10**15;
-    var totalSupply = 2e+19;
+    var totalSupply = 8e+25;
 
     it('should deployed contract', async ()  => {
         assert.equal(undefined, contract);
@@ -78,21 +78,17 @@ contract('WINRCrowdsale', (accounts) => {
         period = await contract.getPeriod(currentDate);
         assert.equal(10, period);
 
-        currentDate = 1520640000; // Mar, 10
+        currentDate = 1528588800; // Jun, 10
         period = await contract.getPeriod(currentDate);
         assert.equal(0, period);
 
-        currentDate = 1523318400; // Apr, 10
+        currentDate = 1530748800; // Jul, 05
         period = await contract.getPeriod(currentDate);
         assert.equal(1, period);
 
-        currentDate = 1524873600; // Apr, 28
-        period = await contract.getPeriod(currentDate);
-        assert.equal(2, period);
-
         currentDate = 1532736000; // Jul, 28
         period = await contract.getPeriod(currentDate);
-        assert.equal(3, period);
+        assert.equal(2, period);
 
         currentDate = 1535414400; // Aug, 28
         period = await contract.getPeriod(currentDate);
@@ -118,11 +114,6 @@ contract('WINRCrowdsale', (accounts) => {
         assert.equal(true, balanceOwnerBefore<balanceOwnerAfter);
     });
 
-    it('verification tokens limit min amount', async ()  => {
-            var numberTokensMinWey = await contract.validPurchaseTokens.call(buyWeiMin);
-            //console.log("numberTokensMinWey = " + numberTokensMinWey);
-            assert.equal(0, numberTokensMinWey);
-    });
 
 });
 
