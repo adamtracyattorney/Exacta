@@ -225,12 +225,12 @@ contract Ownable {
 
     /**
      * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @param newOwner The address to transfer ownership to.
+     * @param _newOwner The address to transfer ownership to.
      */
-    function changeOwner(address newOwner) onlyOwner internal {
-        require(newOwner != address(0));
-        OwnerChanged(owner, newOwner);
-        owner = newOwner;
+    function changeOwner(address _newOwner) onlyOwner internal {
+        require(_newOwner != address(0));
+        OwnerChanged(owner, _newOwner);
+        owner = _newOwner;
     }
 
 }
@@ -244,9 +244,9 @@ contract Ownable {
  */
 
 contract MintableToken is StandardToken, Ownable {
-    string public constant name = "Bitcoin Futures Alpha";
-    string public constant symbol = "BTA";
-    uint8 public constant decimals = 10;
+    string public constant name = "Exacta";
+    string public constant symbol = "WINR";
+    uint8 public constant decimals = 18;
 
     event Mint(address indexed to, uint256 amount);
     event MintFinished();
@@ -344,9 +344,11 @@ contract WINRCrowdsale is Ownable, Crowdsale, MintableToken {
 
     mapping (address => uint256) public deposited;
 
-    uint256 public constant INITIAL_SUPPLY = 2000 * (10 ** 6) * (10 ** uint256(decimals));
-    uint256 public fundForSale = 1550 * (10 ** 6) * (10 ** uint256(decimals));
-    uint256 public fundForTeam =  450 * (10 ** 6) * (10 ** uint256(decimals));
+    uint256 public constant INITIAL_SUPPLY = 80 * (10 ** 6) * (10 ** uint256(decimals));
+    uint256 public fundForSale = 50 * (10 ** 6) * (10 ** uint256(decimals));
+    uint256 public fundForTeam =  20 * (10 ** 6) * (10 ** uint256(decimals));
+    uint256 public fundForAirdrop =  2 * (10 ** 6) * (10 ** uint256(decimals));
+    uint256 public fundForBounty =  8 * (10 ** 6) * (10 ** uint256(decimals));
 
     uint256 public countInvestor;
 
@@ -355,14 +357,12 @@ contract WINRCrowdsale is Ownable, Crowdsale, MintableToken {
     event Finalized();
 
     function WINRCrowdsale(
-    address _owner,
-    address _wallet
+    address _owner
     )
     public
-    Crowdsale(_wallet)
+    Crowdsale(_owner)
     {
 
-        require(_wallet != address(0));
         require(_owner != address(0));
         owner = _owner;
         transfersEnabled = true;
@@ -407,32 +407,28 @@ contract WINRCrowdsale is Ownable, Crowdsale, MintableToken {
         //currentDate = 1520640000; //for test's
         uint256 currentPeriod = getPeriod(currentDate);
         uint256 amountOfTokens = 0;
-        if(currentPeriod < 4){
+        if(currentPeriod < 3){
             if(_weiAmount < weiMinSale[currentPeriod]){
                 return 0;
             }
-            amountOfTokens = (_weiAmount.mul(rates[currentPeriod])).div(uint256(10**8));
+            amountOfTokens = (_weiAmount.mul(rates[currentPeriod])).div(uint256(10**18));
         }
         return amountOfTokens;
     }
 
     function getPeriod(uint256 _currentDate) public pure returns (uint) {
-        //1519689600 - Feb, 27, 2018 00:00:00 && 1521676799 - Mar, 21, 2018 23:59:59
-        //1521676800 - Mar, 22, 2018 00:00:00 && 1524614399 - Apr, 24, 2018 23:59:59
-        //1524614400 - Apr, 25, 2018 00:00:00 && 1528415999 - Jun, 07, 2018 23:59:59
-        //1528416000 - Jun, 08, 2018 00:00:00 && 1532908799 - Jul, 29, 2018 23:59:59
+        //1527811200 - Jun, 01, 2018 00:00:00 && 1530403199 - Jun, 30, 2018 23:59:59
+        //1530403200 - Jul, 01, 2018 00:00:00 && 1531267199 - Jul, 10, 2018 23:59:59
+        //1531267200 - Jul, 11, 2018 00:00:00 && 1533081599 - Jul, 31, 2018 23:59:59
 
-        if( 1519689600 <= _currentDate && _currentDate <= 1521676799){
+        if( 1527811200 <= _currentDate && _currentDate <= 1530403199){
             return 0;
         }
-        if( 1521676800 <= _currentDate && _currentDate <= 1524614399){
+        if( 1530403200 <= _currentDate && _currentDate <= 1531267199){
             return 1;
         }
-        if( 1524614400 <= _currentDate && _currentDate <= 1528415999){
+        if( 1531267200 <= _currentDate && _currentDate <= 1533081599){
             return 2;
-        }
-        if( 1528416000 <= _currentDate && _currentDate <= 1532908799){
-            return 3;
         }
         return 10;
     }
